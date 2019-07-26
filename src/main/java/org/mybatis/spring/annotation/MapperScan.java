@@ -15,18 +15,12 @@
  */
 package org.mybatis.spring.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.annotation.Import;
+
+import java.lang.annotation.*;
 
 /**
  * Use this annotation to register MyBatis mapper interfaces when using Java Config. It performs when same work as
@@ -70,7 +64,7 @@ import org.springframework.context.annotation.Import;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(MapperScannerRegistrar.class)
+@Import(MapperScannerRegistrar.class) // @Import注解的含义就是把MapperScannerRegistrar这个类导入spring
 @Repeatable(MapperScans.class)
 public @interface MapperScan {
 
