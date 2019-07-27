@@ -15,12 +15,6 @@
  */
 package org.mybatis.spring.mapper;
 
-import static org.springframework.util.Assert.notNull;
-
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.Optional;
-
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.PropertyValue;
@@ -40,6 +34,12 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
  * BeanDefinitionRegistryPostProcessor that searches recursively starting from a base package for interfaces and
@@ -338,6 +338,7 @@ public class MapperScannerConfigurer
       processPropertyPlaceHolders();
     }
 
+    //这里实例化了classpath下对Mapper接口的扫描器，并把spring容器的注册器（registry）传入。
     ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
     scanner.setAddToConfig(this.addToConfig);
     scanner.setAnnotationClass(this.annotationClass);
