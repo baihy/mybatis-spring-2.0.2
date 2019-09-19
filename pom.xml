@@ -17,47 +17,6 @@
   <description>An easy-to-use Spring bridge for MyBatis sql mapping framework.</description>
   <url>http://www.mybatis.org/spring/</url>
 
-  <contributors>
-    <contributor>
-      <name>Alex Rykov</name>
-      <email>Alex.Rykov@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Andrius Juozapaitis</name>
-      <email>andriusj@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Giovanni Cuccu</name>
-      <email>giovanni.cuccu@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Kay Huber</name>
-      <email>kay.huber@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Lishu Luo</name>
-      <email>lishu.luo@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Michael Lanyon</name>
-      <email>lanyonm@gmail.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Raj Nagappan</name>
-      <email>raj@velocitylabs.com</email>
-    </contributor>
-
-    <contributor>
-      <name>Tomas Pinos</name>
-      <email>tomas.pinos@gmail.com</email>
-    </contributor>
-  </contributors>
 
   <scm>
     <url>http://github.com/mybatis/spring</url>
