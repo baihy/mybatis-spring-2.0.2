@@ -181,7 +181,8 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
             LOGGER.warn(() -> "No MyBatis mapper was found in '" + Arrays.toString(basePackages)
                     + "' package. Please check your configuration.");
         } else {
-          // 核心方法
+          //在这个方法中，上面是扫描所有的Mapper接口，并把Mapper接口转换成beanDefinition对象。
+            // 注意：此时的beanDefinition对象，并没有是实现类。
             processBeanDefinitions(beanDefinitions);
         }
         return beanDefinitions;
@@ -189,16 +190,21 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
     private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
         GenericBeanDefinition definition;
+        // 循环为Mapper接口对应的beanDefinition对象设置实现类
         for (BeanDefinitionHolder holder : beanDefinitions) {
             definition = (GenericBeanDefinition) holder.getBeanDefinition();
             String beanClassName = definition.getBeanClassName();
-            LOGGER.debug(() -> "Creating MapperFactoryBean with name '" + holder.getBeanName() + "' and '" + beanClassName
-                    + "' mapperInterface");
+            /*LOGGER.debug(() -> "Creating MapperFactoryBean with name '" + holder.getBeanName() + "' and '" + beanClassName
+                    + "' mapperInterface");*/
 
             // 为BeanDefinition接口实现类的构造方法的参数值赋值。
+            // 注意：MapperFactoryBean中，需要动态的指定所有的Mapper接口，所以需要动态的传入Mapper接口字节码。
+            // todo baihuayang 为什么通过构造方法传入的值是一个字符串类型呢？
             definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName);
             // 在使用注解的时候默认指定了MapperFactoryBean的类。这个类是MapperFactoryBean
             // 这个属性是org.mybatis.spring.annotation.MapperScan.factoryBean
+            // 为所有的mapper接口对应的bean设置BeanClass属性是MapperFactoryBean类。
+            // MapperFactoryBean这个类是FactoryBean，在这个类的getObject方法中，可以返回Mapper接口实现类对象。
             definition.setBeanClass(this.mapperFactoryBeanClass);
 
             definition.getPropertyValues().add("addToConfig", this.addToConfig);

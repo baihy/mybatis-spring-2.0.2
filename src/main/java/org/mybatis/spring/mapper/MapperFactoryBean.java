@@ -67,6 +67,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   *  这个方法的调用时在下面getObject方法的下面的方法，getMapper方法中调用的。
    */
   @Override
   protected void checkDaoConfig() {
@@ -77,6 +78,8 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     Configuration configuration = getSqlSession().getConfiguration();
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
+        // 核心功能，把Mapper接口注册到mybaits的配置中，并生成Mapper接口实现类。
+        // 在addMapper方法中，可以看到 knownMappers.put(type, new MapperProxyFactory<>(type));
         configuration.addMapper(this.mapperInterface);
       } catch (Exception e) {
         logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);

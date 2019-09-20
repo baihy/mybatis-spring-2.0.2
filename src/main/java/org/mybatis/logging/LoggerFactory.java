@@ -28,6 +28,11 @@ public class LoggerFactory {
     // NOP
   }
 
+  /**
+   *  在spring和mybatis的整合中，使用是mybatis的日志
+   *
+   */
+
   public static Logger getLogger(Class<?> aClass) {
     return new Logger(LogFactory.getLog(aClass));
   }
