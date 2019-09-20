@@ -119,6 +119,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
         this.exceptionTranslator = exceptionTranslator;
         /**
          * SqlSessionTemplate类的核心作用
+         *   new SqlSessionInterceptor();这是对象是实现类，sqlSessionProxy这个对象是对DefatultSqlSession对象的增强
          */
         this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(), new Class[]{SqlSession.class}, new SqlSessionInterceptor());
     }
@@ -406,26 +407,25 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
      * Proxy needed to route MyBatis method calls to the proper SqlSession got from Spring's Transaction Manager It also
      * unwraps exceptions thrown by {@code Method#invoke(Object, Object...)} to pass a {@code PersistenceException} to the
      * {@code PersistenceExceptionTranslator}.
-     *
-     *  sqlSession对象的代理的核心功能
-     *
+     * <p>
+     * sqlSession对象的代理的核心功能。
+     * SqlSession对象的代理对象。这里是JDK的InvocationHandler接口的实现类，主要的作用就是对SqlSession对象进行功能增强。
      */
     private class SqlSessionInterceptor implements InvocationHandler {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            // 这里获取到的SqlSession对象就是DefaultSqlSession
             SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory, SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
             try {
-                Object result = method.invoke(sqlSession, args);
+                //  这里是执行DefaultSqlSession真实对象的方法。
+                Object result = method.invoke(sqlSession, args); // 真实的方法是调用DefaultSqlSession对象的方法。
                 if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
-                    // force commit even on non-dirty sessions because some databases require
-                    // a commit/rollback before calling close()
                     sqlSession.commit(true);
                 }
                 return result;
             } catch (Throwable t) {
                 Throwable unwrapped = unwrapThrowable(t);
                 if (SqlSessionTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
-                    // release the connection to avoid a deadlock if the translator is no loaded. See issue #22
                     closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
                     sqlSession = null;
                     Throwable translated = SqlSessionTemplate.this.exceptionTranslator.translateExceptionIfPossible((PersistenceException) unwrapped);
@@ -436,7 +436,14 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
                 throw unwrapped;
             } finally {
                 if (sqlSession != null) {
-                    // 这里就是Mybatis和spring整合时，mybatis一级缓存失效的原因
+                    /**
+                     * 这里就是Mybatis和spring整合时，mybatis一级缓存失效的原因
+                     *     那么为什么关闭SqlSession呢？
+                     *  我们spring整合mybatis的时候，
+                     *      执行的SqlSession接口的实现类是：SqlSessionTemplate而单独使用的mybatis时，使用的SqlSession接口的实现类是DefaultSqlSession对象。
+                     *  原生的没有关闭SqlSession
+                     */
+                    // 这个SqlSession接口就是DefaultSqlSession对象
                     closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
                 }
             }
