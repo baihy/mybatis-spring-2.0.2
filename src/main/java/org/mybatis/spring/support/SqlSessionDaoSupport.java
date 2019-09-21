@@ -15,12 +15,12 @@
  */
 package org.mybatis.spring.support;
 
-import static org.springframework.util.Assert.notNull;
-
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.dao.support.DaoSupport;
+
+import static org.springframework.util.Assert.notNull;
 
 /**
  * Convenient super class for MyBatis SqlSession data access objects. It gives you access to the template which can then
@@ -38,6 +38,13 @@ import org.springframework.dao.support.DaoSupport;
  */
 public abstract class SqlSessionDaoSupport extends DaoSupport {
 
+  /**
+   * 注意：在DaoSupport类中，实现了Spring的InitializingBean接口，这个接口是bean的生命周期回调
+   *  就是在bean的调用初始化方法的前后调用，会调用它的实现方法afterPropertiesSet，在afterPropertiesSet方法中
+   *  调用了checkDaoConfig方法，这个方法实在MapperFactoryBean实现类中，实现的方法
+   */
+
+
   private SqlSessionTemplate sqlSessionTemplate;
 
   /**
@@ -46,6 +53,13 @@ public abstract class SqlSessionDaoSupport extends DaoSupport {
    *
    * @param sqlSessionFactory
    *          a factory of SqlSession
+   *
+   *
+   * 注意：这个setSqlSessionFactory方法是由spring中bean的属性注入时，调用的。
+   *  spring属性注入使用的是修改了MapperFactoryBean对象对应的GenericBeanDefinition对象中的autowireMode属性
+   *  这里能够自动注入的源码解释是：org.mybatis.spring.mapper.ClassPathMapperScanner#processBeanDefinitions(java.util.Set)这个方法的最后：
+   *    设置了definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+   *  而这里的SqlSessionFactory对象就是我们在SpringConfig配置类中，通过@Bean注解，把SqlSessionFactoryBean类注入到spring容器的原因
    */
   public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
     if (this.sqlSessionTemplate == null || sqlSessionFactory != this.sqlSessionTemplate.getSqlSessionFactory()) {

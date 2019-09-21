@@ -301,6 +301,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
      */
     @Override
     public <T> T getMapper(Class<T> type) {
+        //核心区别：当单独使用mybatis时，获取Mapper时，传入的是DefaultSqlSession，而使用spring整合mybatis的时候，传入的是SqlSessionTemplate对象。
+        // 而生成的Mapper接口的实现类， 注入的SqlSession接口，这就是为什么SqlSessionTemplate为什么要实现SqlSession接口了。
         return getConfiguration().getMapper(type, this);
     }
 
@@ -435,15 +437,19 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
                 }
                 throw unwrapped;
             } finally {
+                /**
+                 * 这里就是Mybatis和spring整合时，mybatis一级缓存失效的原因
+                 *  那么为什么关闭SqlSession呢？
+                 *  我们spring整合mybatis的时候，
+                 *      执行的SqlSession接口的实现类是：SqlSessionTemplate而单独使用的mybatis时，使用的SqlSession接口的实现类是DefaultSqlSession对象。
+                 *  原生的没有关闭SqlSession
+                 *
+                 *  那么spring的整合mybatis的时候，sqlSession的对象为什么要关闭呢？
+                 *    因为spring没办法拿到这个SqlSession对象，换句话说：就是这个SqlSession对象没有纳入到spring的容器中
+                 *    mybatis为什么没有关闭是因为，mybatis中可以获取到SqlSession对象，随时都能关闭
+                 */
+                // 这个SqlSession接口就是DefaultSqlSession对象
                 if (sqlSession != null) {
-                    /**
-                     * 这里就是Mybatis和spring整合时，mybatis一级缓存失效的原因
-                     *     那么为什么关闭SqlSession呢？
-                     *  我们spring整合mybatis的时候，
-                     *      执行的SqlSession接口的实现类是：SqlSessionTemplate而单独使用的mybatis时，使用的SqlSession接口的实现类是DefaultSqlSession对象。
-                     *  原生的没有关闭SqlSession
-                     */
-                    // 这个SqlSession接口就是DefaultSqlSession对象
                     closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
                 }
             }

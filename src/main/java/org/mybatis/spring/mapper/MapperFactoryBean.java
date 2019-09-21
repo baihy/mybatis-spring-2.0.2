@@ -1,12 +1,12 @@
 /**
  * Copyright 2010-2019 the original author or authors.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package org.mybatis.spring.mapper;
 
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.support.SqlSessionDaoSupport;
 import org.springframework.beans.factory.FactoryBean;
@@ -48,115 +49,115 @@ import static org.springframework.util.Assert.notNull;
  * Note that this factory can only inject <em>interfaces</em>, not concrete classes.
  *
  * @author Eduardo Macarron
- *
  * @see SqlSessionTemplate
  */
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
-  private Class<T> mapperInterface;
+    private Class<T> mapperInterface;
 
-  private boolean addToConfig = true;
+    private boolean addToConfig = true;
 
-  public MapperFactoryBean() {
-    // intentionally empty
-  }
-
-  public MapperFactoryBean(Class<T> mapperInterface) {
-    this.mapperInterface = mapperInterface;
-  }
-
-  /**
-   * {@inheritDoc}
-   *  这个方法的调用时在下面getObject方法的下面的方法，getMapper方法中调用的。
-   */
-  @Override
-  protected void checkDaoConfig() {
-    super.checkDaoConfig();
-
-    notNull(this.mapperInterface, "Property 'mapperInterface' is required");
-
-    Configuration configuration = getSqlSession().getConfiguration();
-    if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
-      try {
-        // 核心功能，把Mapper接口注册到mybaits的配置中，并生成Mapper接口实现类。
-        // 在addMapper方法中，可以看到 knownMappers.put(type, new MapperProxyFactory<>(type));
-        configuration.addMapper(this.mapperInterface);
-      } catch (Exception e) {
-        logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
-        throw new IllegalArgumentException(e);
-      } finally {
-        ErrorContext.instance().reset();
-      }
+    public MapperFactoryBean() {
+        // intentionally empty
     }
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public T getObject() throws Exception {
-    // 使用FactoryBean工厂，把mybatis生成的Mapper代理对象注入spring容器
-    return getSqlSession().getMapper(this.mapperInterface);
-  }
+    public MapperFactoryBean(Class<T> mapperInterface) {
+        this.mapperInterface = mapperInterface;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<T> getObjectType() {
-    return this.mapperInterface;
-  }
+    /**
+     * {@inheritDoc}
+     * 这个方法的调用时在下面getObject方法的下面的方法，getMapper方法中调用的。
+     */
+    @Override
+    protected void checkDaoConfig() {
+        /**
+         * 这个方法会在bean调用初始化方法前后调用，因为MapperFactoryBean类实现了InitializingBean接口。
+         * InitializingBean接口的afterPropertiesSet方法是在spring的bean对象调用初始化方法之后执行。
+         */
+        super.checkDaoConfig();
+        notNull(this.mapperInterface, "Property 'mapperInterface' is required");
+        Configuration configuration = getSqlSession().getConfiguration();
+        if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
+            try {
+                // 核心功能，把Mapper接口注册到mybaits的配置中，并生成Mapper接口实现类。
+                // 在addMapper方法中，可以看到 knownMappers.put(type, new MapperProxyFactory<>(type));
+                configuration.addMapper(this.mapperInterface);
+            } catch (Exception e) {
+                logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
+                throw new IllegalArgumentException(e);
+            } finally {
+                ErrorContext.instance().reset();
+            }
+        }
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isSingleton() {
-    return true;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T getObject() throws Exception {
+        // 使用FactoryBean工厂，把mybatis生成的Mapper代理对象注入spring容器
+        SqlSession sqlSession = getSqlSession();
+        return sqlSession.getMapper(this.mapperInterface);
+    }
 
-  // ------------- mutators --------------
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<T> getObjectType() {
+        return this.mapperInterface;
+    }
 
-  /**
-   * Sets the mapper interface of the MyBatis mapper
-   *
-   * @param mapperInterface
-   *          class of the interface
-   */
-  public void setMapperInterface(Class<T> mapperInterface) {
-    this.mapperInterface = mapperInterface;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
-  /**
-   * Return the mapper interface of the MyBatis mapper
-   *
-   * @return class of the interface
-   */
-  public Class<T> getMapperInterface() {
-    return mapperInterface;
-  }
+    // ------------- mutators --------------
 
-  /**
-   * If addToConfig is false the mapper will not be added to MyBatis. This means it must have been included in
-   * mybatis-config.xml.
-   * <p>
-   * If it is true, the mapper will be added to MyBatis in the case it is not already registered.
-   * <p>
-   * By default addToConfig is true.
-   *
-   * @param addToConfig
-   *          a flag that whether add mapper to MyBatis or not
-   */
-  public void setAddToConfig(boolean addToConfig) {
-    this.addToConfig = addToConfig;
-  }
+    /**
+     * Sets the mapper interface of the MyBatis mapper
+     *
+     * @param mapperInterface class of the interface
+     */
+    public void setMapperInterface(Class<T> mapperInterface) {
+        this.mapperInterface = mapperInterface;
+    }
 
-  /**
-   * Return the flag for addition into MyBatis config.
-   *
-   * @return true if the mapper will be added to MyBatis in the case it is not already registered.
-   */
-  public boolean isAddToConfig() {
-    return addToConfig;
-  }
+    /**
+     * Return the mapper interface of the MyBatis mapper
+     *
+     * @return class of the interface
+     */
+    public Class<T> getMapperInterface() {
+        return mapperInterface;
+    }
+
+    /**
+     * If addToConfig is false the mapper will not be added to MyBatis. This means it must have been included in
+     * mybatis-config.xml.
+     * <p>
+     * If it is true, the mapper will be added to MyBatis in the case it is not already registered.
+     * <p>
+     * By default addToConfig is true.
+     *
+     * @param addToConfig a flag that whether add mapper to MyBatis or not
+     */
+    public void setAddToConfig(boolean addToConfig) {
+        this.addToConfig = addToConfig;
+    }
+
+    /**
+     * Return the flag for addition into MyBatis config.
+     *
+     * @return true if the mapper will be added to MyBatis in the case it is not already registered.
+     */
+    public boolean isAddToConfig() {
+        return addToConfig;
+    }
 }

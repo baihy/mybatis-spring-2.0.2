@@ -188,6 +188,11 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         return beanDefinitions;
     }
 
+    /**
+     * 改变扫描出来的Mapper接口对应的BeanDefintion对象，两个核心改变是改变是：
+     *  1.BeanClass属性，设置Mapper接口对应的实现类
+     *  2.AutowireMode属性，设置Bean的自动装配模式
+     */
     private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
         GenericBeanDefinition definition;
         // 循环为Mapper接口对应的beanDefinition对象设置实现类
@@ -200,6 +205,8 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
             // 为BeanDefinition接口实现类的构造方法的参数值赋值。
             // 注意：MapperFactoryBean中，需要动态的指定所有的Mapper接口，所以需要动态的传入Mapper接口字节码。
             // todo baihuayang 为什么通过构造方法传入的值是一个字符串类型呢？
+            // 在MapperFactoryBean的有参构造方法中，需要一个Class类型的对象，那么为什么这里却传入了一个字符串呢？
+            // 因为spring底层会自动把字符串转换成Class对象。待求证！！！！
             definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName);
             // 在使用注解的时候默认指定了MapperFactoryBean的类。这个类是MapperFactoryBean
             // 这个属性是org.mybatis.spring.annotation.MapperScan.factoryBean
@@ -207,6 +214,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
             // MapperFactoryBean这个类是FactoryBean，在这个类的getObject方法中，可以返回Mapper接口实现类对象。
             definition.setBeanClass(this.mapperFactoryBeanClass);
 
+            // 在修改Mapper对应的beanDefintion对象的时候，动态添加了一个 addToConfig 属性。
             definition.getPropertyValues().add("addToConfig", this.addToConfig);
 
             boolean explicitFactoryUsed = false;
@@ -238,6 +246,11 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
             if (!explicitFactoryUsed) {
                 LOGGER.debug(() -> "Enabling autowire by type for MapperFactoryBean with name '" + holder.getBeanName() + "'.");
+                /**
+                 * mybatis-spring集合项目中核心操作，因为在Mapper接口的实现类MapperFactoryBean中，需要注入sqlSessionFactory，又不能在代码中，通过注册来注入，
+                 * 我们只能通过修改BeanDefinition对象中的autowireMode属性，设置为MapperFactoryBean对象的属性通过setter方法按照类型，自动注入。
+                 * 注意：默认情况下，spring中不加注解的属性，是不会自动注入的，除非通过BeanDefinition对象指定的
+                 * */
                 definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
             }
             definition.setLazyInit(lazyInitialization);
