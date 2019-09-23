@@ -51,6 +51,11 @@ import java.util.stream.Collectors;
  */
 public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
 
+
+  /**
+   * MapperScannerRegistrar实现了ImportBeanDefinitionRegistror
+   * 最核心功能是程序员手动实例化一个BeanDefinition对象，对BeanDefinition对象进行赋值操作。
+   */
   /**
    * {@inheritDoc}
    * 
@@ -67,6 +72,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
    */
   @Override
   public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+    // 获取指定注解的属性AnnotationAttributes是LinkedHashMap子类
     AnnotationAttributes mapperScanAttrs = AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(MapperScan.class.getName()));
     if (mapperScanAttrs != null) {
       // 这里是MapperScan注解的属性
@@ -77,6 +83,9 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
   // 方法的含义就是把MapperScannerConfigurer这个类，纳入spring管理。
   void registerBeanDefinitions(AnnotationAttributes annoAttrs, BeanDefinitionRegistry registry, String beanName) {
     // 构建一个BeanDefinition接口的实现类，指定BeanDefinition实现类的beanClass属性为MapperScannerConfigurer。
+
+    // BeanDefinitionBuilder相当于是BeanDefinition对象的包装类。
+    /***</>***/
     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
     builder.addPropertyValue("processPropertyPlaceHolders", true);
 
@@ -97,6 +106,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     Class<? extends MapperFactoryBean> mapperFactoryBeanClass = annoAttrs.getClass("factoryBean");
     if (!MapperFactoryBean.class.equals(mapperFactoryBeanClass)) {
+      // 主语：所有的Mapper接口的实现类都是MapperFactoryBean
       builder.addPropertyValue("mapperFactoryBeanClass", mapperFactoryBeanClass);
     }
 
@@ -111,8 +121,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
 
     List<String> basePackages = new ArrayList<>();
-    basePackages.addAll(
-        Arrays.stream(annoAttrs.getStringArray("value")).filter(StringUtils::hasText).collect(Collectors.toList()));
+    basePackages.addAll(Arrays.stream(annoAttrs.getStringArray("value")).filter(StringUtils::hasText).collect(Collectors.toList()));
 
     basePackages.addAll(Arrays.stream(annoAttrs.getStringArray("basePackages")).filter(StringUtils::hasText)
         .collect(Collectors.toList()));
@@ -127,8 +136,9 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     builder.addPropertyValue("basePackage", StringUtils.collectionToCommaDelimitedString(basePackages));
 
+    // 把修改之后MapperScannerConfigurer转换成BeanDefinition对象
+    // 且注意：MapperScannerConfigurer类是实现了org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor这个接口
     registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
-
   }
 
   private static String generateBaseBeanName(AnnotationMetadata importingClassMetadata, int index) {

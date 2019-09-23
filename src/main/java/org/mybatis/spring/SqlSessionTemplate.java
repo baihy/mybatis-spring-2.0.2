@@ -90,8 +90,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
      * @param executorType      an executor type on session
      */
     public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType) {
-        this(sqlSessionFactory, executorType,
-                new MyBatisExceptionTranslator(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(), true));
+        this(sqlSessionFactory, executorType, new MyBatisExceptionTranslator(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(), true));
     }
 
     /**
@@ -121,7 +120,11 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
          * SqlSessionTemplate类的核心作用
          *   new SqlSessionInterceptor();这是对象是实现类，sqlSessionProxy这个对象是对DefatultSqlSession对象的增强
          */
-        this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(), new Class[]{SqlSession.class}, new SqlSessionInterceptor());
+        this.sqlSessionProxy = (SqlSession) newProxyInstance(
+                SqlSessionFactory.class.getClassLoader(),
+                new Class[]{SqlSession.class},
+                new SqlSessionInterceptor());
+        // 这里实例化SqlSession对象是写死了new SqlSessionInterceptor()，必须要使用代理
     }
 
     public SqlSessionFactory getSqlSessionFactory() {

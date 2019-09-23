@@ -309,9 +309,7 @@ public class MapperScannerConfigurer implements BeanDefinitionRegistryPostProces
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @since 1.0.2
+     * 核心方法：通过BeanFactoryPostProcessor
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
@@ -319,7 +317,6 @@ public class MapperScannerConfigurer implements BeanDefinitionRegistryPostProces
             // 处理Properties文件
             processPropertyPlaceHolders();
         }
-
         //这里实例化了classpath下对Mapper接口的扫描器，并把spring容器的注册器（registry）传入。
         ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
         scanner.setAddToConfig(this.addToConfig);
