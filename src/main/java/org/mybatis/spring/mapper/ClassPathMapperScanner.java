@@ -176,13 +176,15 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
      */
     @Override
     public Set<BeanDefinitionHolder> doScan(String... basePackages) {
+        //扫描所有的Mapper接口，并把Mapper接口转换成BeanDefinition对象
         Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
         if (beanDefinitions.isEmpty()) {
-            LOGGER.warn(() -> "No MyBatis mapper was found in '" + Arrays.toString(basePackages)
-                    + "' package. Please check your configuration.");
+            LOGGER.warn(() -> "No MyBatis mapper was found in '" + Arrays.toString(basePackages) + "' package. Please check your configuration.");
         } else {
-          //在这个方法中，上面是扫描所有的Mapper接口，并把Mapper接口转换成beanDefinition对象。
+            //在这个方法中，上面是扫描所有的Mapper接口，并把Mapper接口转换成beanDefinition对象。
             // 注意：此时的beanDefinition对象，并没有是实现类。
+            // 方法的核心功能是：为beanDefinition对象的beanClass属性设置值为MapperFactoryBean。并设置autowireMode为AUTOWIRE_BY_TYPE
+            // 设置autowireMode为AUTOWIRE_BY_TYPE，是为了通过setter方法给Mapper接口的实现类注入SqlSessionFactory对象
             processBeanDefinitions(beanDefinitions);
         }
         return beanDefinitions;
@@ -190,8 +192,8 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
     /**
      * 改变扫描出来的Mapper接口对应的BeanDefintion对象，两个核心改变是改变是：
-     *  1.BeanClass属性，设置Mapper接口对应的实现类
-     *  2.AutowireMode属性，设置Bean的自动装配模式
+     * 1.BeanClass属性，设置Mapper接口对应的实现类
+     * 2.AutowireMode属性，设置Bean的自动装配模式
      */
     private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
         GenericBeanDefinition definition;
@@ -207,7 +209,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
             // todo baihuayang 为什么通过构造方法传入的值是一个字符串类型呢？
             // 在MapperFactoryBean的有参构造方法中，需要一个Class类型的对象，那么为什么这里却传入了一个字符串呢？
             // 因为spring底层会自动把字符串转换成Class对象。待求证！！！！
-            definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName);
+            definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // 通过BeanDefinition对象设置实例化时调用的构造方法。
             // 在使用注解的时候默认指定了MapperFactoryBean的类。这个类是MapperFactoryBean
             // 这个属性是org.mybatis.spring.annotation.MapperScan.factoryBean
             // 为所有的mapper接口对应的bean设置BeanClass属性是MapperFactoryBean类。
@@ -229,16 +231,13 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
             if (StringUtils.hasText(this.sqlSessionTemplateBeanName)) {
                 if (explicitFactoryUsed) {
-                    LOGGER.warn(
-                            () -> "Cannot use both: sqlSessionTemplate and sqlSessionFactory together. sqlSessionFactory is ignored.");
+                    LOGGER.warn(() -> "Cannot use both: sqlSessionTemplate and sqlSessionFactory together. sqlSessionFactory is ignored.");
                 }
-                definition.getPropertyValues().add("sqlSessionTemplate",
-                        new RuntimeBeanReference(this.sqlSessionTemplateBeanName));
+                definition.getPropertyValues().add("sqlSessionTemplate", new RuntimeBeanReference(this.sqlSessionTemplateBeanName));
                 explicitFactoryUsed = true;
             } else if (this.sqlSessionTemplate != null) {
                 if (explicitFactoryUsed) {
-                    LOGGER.warn(
-                            () -> "Cannot use both: sqlSessionTemplate and sqlSessionFactory together. sqlSessionFactory is ignored.");
+                    LOGGER.warn(() -> "Cannot use both: sqlSessionTemplate and sqlSessionFactory together. sqlSessionFactory is ignored.");
                 }
                 definition.getPropertyValues().add("sqlSessionTemplate", this.sqlSessionTemplate);
                 explicitFactoryUsed = true;

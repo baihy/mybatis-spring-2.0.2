@@ -53,6 +53,13 @@ import static org.springframework.util.Assert.notNull;
  */
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
+    /**
+     * MapperFactoryBean继承了SqlSessionDaoSupport，SqlSessionDaoSupport继承了DaoSupport，而DaoSupport实现了InitializingBean
+     * 在bean的初始化前后调用InitializingBean接口的afterPropertiesSet()方法。
+     *        org.springframework.dao.support.DaoSupport#afterPropertiesSet()
+     *  在fterPropertiesSet()方法中，调用checkDaoConfig()方法
+     */
+
     private Class<T> mapperInterface;
 
     private boolean addToConfig = true;
