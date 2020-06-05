@@ -83,9 +83,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
   // 方法的含义就是把MapperScannerConfigurer这个类，纳入spring管理。
   void registerBeanDefinitions(AnnotationAttributes annoAttrs, BeanDefinitionRegistry registry, String beanName) {
     // 构建一个BeanDefinition接口的实现类，指定BeanDefinition实现类的beanClass属性为MapperScannerConfigurer。
-
     // BeanDefinitionBuilder相当于是BeanDefinition对象的包装类。
-    /***</>***/
     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
     builder.addPropertyValue("processPropertyPlaceHolders", true);
 
@@ -104,6 +102,8 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
       builder.addPropertyValue("nameGenerator", BeanUtils.instantiateClass(generatorClass));
     }
 
+    // 因为@MapperScan默认把MapperFactoryBean导入spring容器。所以这样，springBean就是spring容器中的一个bean对象了。而且，mybatis
+    // 要为这个bean对象动态注入Mapper接口的实现类。
     Class<? extends MapperFactoryBean> mapperFactoryBeanClass = annoAttrs.getClass("factoryBean");
     if (!MapperFactoryBean.class.equals(mapperFactoryBeanClass)) {
       // 主语：所有的Mapper接口的实现类都是MapperFactoryBean

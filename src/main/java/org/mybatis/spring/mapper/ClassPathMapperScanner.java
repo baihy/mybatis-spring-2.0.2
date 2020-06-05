@@ -201,9 +201,6 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         for (BeanDefinitionHolder holder : beanDefinitions) {
             definition = (GenericBeanDefinition) holder.getBeanDefinition();
             String beanClassName = definition.getBeanClassName();
-            /*LOGGER.debug(() -> "Creating MapperFactoryBean with name '" + holder.getBeanName() + "' and '" + beanClassName
-                    + "' mapperInterface");*/
-
             // 为BeanDefinition接口实现类的构造方法的参数值赋值。
             // 注意：MapperFactoryBean中，需要动态的指定所有的Mapper接口，所以需要动态的传入Mapper接口字节码。
             // todo baihuayang 为什么通过构造方法传入的值是一个字符串类型呢？
@@ -221,8 +218,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
             boolean explicitFactoryUsed = false;
             if (StringUtils.hasText(this.sqlSessionFactoryBeanName)) {
-                definition.getPropertyValues().add("sqlSessionFactory",
-                        new RuntimeBeanReference(this.sqlSessionFactoryBeanName));
+                definition.getPropertyValues().add("sqlSessionFactory", new RuntimeBeanReference(this.sqlSessionFactoryBeanName));
                 explicitFactoryUsed = true;
             } else if (this.sqlSessionFactory != null) {
                 definition.getPropertyValues().add("sqlSessionFactory", this.sqlSessionFactory);
@@ -249,7 +245,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
                  * mybatis-spring集合项目中核心操作，因为在Mapper接口的实现类MapperFactoryBean中，需要注入sqlSessionFactory，又不能在代码中，通过注册来注入，
                  * 我们只能通过修改BeanDefinition对象中的autowireMode属性，设置为MapperFactoryBean对象的属性通过setter方法按照类型，自动注入。
                  * 注意：默认情况下，spring中不加注解的属性，是不会自动注入的，除非通过BeanDefinition对象指定的
-                 * */
+                 */
                 definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
             }
             definition.setLazyInit(lazyInitialization);
